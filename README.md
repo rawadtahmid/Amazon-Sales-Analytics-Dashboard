@@ -1,20 +1,28 @@
-Hi, I'm Tahmid 👋
-🚀 Data Analyst & Dashboard Developer
+📊 Amazon Sales Analytics Dashboard
+An interactive dashboard with business insights and strategy.
 
-I build interactive dashboards that combine:
-➢Data visualization
-➢Business insights
-➢Strategic recommendations
+🚀 Features
+Interactive filters (Region, Product, Category)
+KPI tracking (Revenue, Profit, Margin, Units)
+Data visualization (Bar, Donut, Bubble charts)
+Clean UI/UX
 
-🔧 Skills:
-➢HTML 
-➢CSS
-➢JavaScript
-➢Data Analysis
-➢Dashboard Design
+🧠 Insights
+Europe dominates revenue (43%)
+Phone Case highest margin (70%)
+Electronics = high revenue but low margin
+Middle East = high potential market
 
-📊 Featured Work
+📄 Report Included
+Full business report with strategy and recommendations.
 
+🛠️ Tools
+HTML
+CSS
+JavaScript
+
+📬 Contact
+Available for freelance dashboard projects.
 Amazon Sales Analytics Dashboard (with insights & strategy)
 
 📬 Contact
