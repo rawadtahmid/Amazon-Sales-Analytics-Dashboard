@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amazon Best Sellers — Power BI Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0D14;--surface:#13131F;--surface2:#1A1A2E;--surface3:#23233A;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#F0EFF5;--muted:#7B7A8A;--hint:#3D3C50;
+  --a1:#FF6B35;--a2:#00D4AA;--a3:#7B5EA7;--a4:#FFD166;--a5:#EF476F;--a6:#118AB2;
+  --font:'Inter',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html{background:var(--bg)}
+body{font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.logo{width:30px;height:30px;background:var(--a1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.brand-title{font-size:14px;font-weight:600}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:var(--mono);background:rgba(239,71,111,0.15);color:#ef476f;border:1px solid rgba(239,71,111,0.3)}
+.date-badge{font-size:10px;color:var(--muted);font-family:var(--mono)}
+/* LAYOUT */
+.layout{display:flex;flex:1;overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:16px 12px;overflow-y:auto;flex-shrink:0}
+.sider-section{margin-bottom:20px}
+.sider-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding:0 4px}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-check{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:12px;color:var(--text)}
+.filter-check:hover{background:var(--surface2)}
+.filter-check input[type=checkbox]{appearance:none;width:14px;height:14px;border:1.5px solid var(--border2);border-radius:3px;cursor:pointer;flex-shrink:0;position:relative;transition:all .15s}
+.filter-check input[type=checkbox]:checked{border-color:var(--a1);background:var(--a1)}
+.filter-check input[type=checkbox]:checked::after{content:'';position:absolute;left:3px;top:1px;width:5px;height:8px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.reset-btn{width:100%;background:none;border:1px solid var(--border2);border-radius:6px;padding:7px;color:var(--muted);font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;margin-top:8px}
+.reset-btn:hover{color:var(--text);border-color:var(--a1);color:var(--a1)}
+.stats-mini{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:11px}
+.stat-row:last-child{margin-bottom:0}
+.stat-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--a2)}
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+/* NAV TABS */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);padding-bottom:0;margin-bottom:4px}
+.tab{background:none;border:none;color:var(--muted);font-family:var(--font);font-size:12px;font-weight:500;padding:9px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;border-radius:6px 6px 0 0}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--a1);background:var(--surface2)}
+.page{display:none}.page.active{display:flex;flex-direction:column;gap:14px}
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,transform .15s;cursor:default}
+.kpi:hover{border-color:var(--border2);transform:translateY(-1px)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--a1))}
+.kpi-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.kpi-val{font-size:22px;font-weight:700;color:var(--text);font-family:var(--mono);line-height:1}
+.kpi-sub{font-size:10px;color:var(--hint);margin-top:5px}
+.kpi-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;margin-top:6px;padding:2px 7px;border-radius:4px;background:rgba(0,212,170,.12);color:var(--a2)}
+/* GRID LAYOUTS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid21{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.grid12{display:grid;grid-template-columns:1fr 2fr;gap:14px}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;overflow:hidden}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:600;color:var(--text)}
+.card-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.card-chip{font-size:9px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--surface3);color:var(--muted);font-family:var(--mono);flex-shrink:0}
+.chart-wrap{position:relative}
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:9.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:0 10px 9px;text-align:left;border-bottom:1px solid var(--border)}
+.data-table td{padding:9px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03);transition:background .15s}
+.data-table tr:hover td{background:var(--surface2)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table .num{font-family:var(--mono);text-align:right}
+.rank{width:22px;height:22px;border-radius:5px;background:var(--surface3);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);font-weight:500}
+.r1{background:rgba(255,209,102,.2);color:var(--a4)}
+.r2{background:rgba(240,240,240,.1);color:#ccc}
+.r3{background:rgba(193,130,80,.15);color:#c18250}
+.pill{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px}
+.mbar{display:flex;align-items:center;gap:7px}
+.mtrack{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;min-width:50px}
+.mfill{height:100%;border-radius:2px}
+/* FILTERS row */
+.frow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.fbtn{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 13px;font-family:var(--font);font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.fbtn:hover{color:var(--text);border-color:var(--border2)}
+.fbtn.active{background:var(--a1);border-color:var(--a1);color:#fff}
+/* INSIGHT BOX */
+.insight-box{background:var(--surface2);border:1px solid var(--border);border-left:2px solid var(--a2);border-radius:0 8px 8px 0;padding:14px 16px}
+.insight-title{font-size:10px;font-weight:600;color:var(--a2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.insight-item{display:flex;gap:8px;font-size:11.5px;color:var(--text);line-height:1.6;margin-bottom:5px}
+.insight-item:last-child{margin-bottom:0}
+.insight-dot{color:var(--a1);flex-shrink:0;font-size:13px;margin-top:1px}
+/* STRATEGY CARDS */
+.strat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.strat-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;border-left:2px solid var(--sc,var(--a1))}
+.strat-num{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--sc,var(--a1));margin-bottom:6px}
+.strat-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px}
+.strat-body{font-size:11px;color:var(--muted);line-height:1.65}
+/* PRIORITY TABLE */
+.priority-table{width:100%;border-collapse:collapse}
+.priority-table th{font-size:9px;font-weight:700;color:var(--bg);background:var(--a1);padding:8px 10px;text-transform:uppercase;letter-spacing:.06em;text-align:left}
+.priority-table td{padding:8px 10px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)}
+.priority-table tr:nth-child(even) td{background:var(--surface2)}
+.priority-table tr:hover td{background:var(--surface3)}
+.high-c{color:#00D4AA;font-weight:600}.mid-c{color:#FFD166;font-weight:600}.low-c{color:#EF476F;font-weight:600}
+.p1{color:#FF6B35;font-weight:700;font-family:var(--mono)}.p2{color:#FFD166;font-weight:700;font-family:var(--mono)}.p3{color:var(--muted);font-family:var(--mono)}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.grid2,.grid3,.grid21,.grid12{grid-template-columns:1fr}.sidebar{display:none}.strat-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">A</div>
+    <div><div class="brand-title">Amazon Best Sellers</div><div class="brand-sub">Business Analytics &amp; Strategy · Power BI Dashboard</div></div>
+  </div>
+  <div class="topbar-right">
+    <span class="date-badge">March 2026</span>
+    <span class="badge">CONFIDENTIAL</span>
+  </div>
+</div>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sider-section">
+    <div class="sider-label">Filters / Slicers</div>
+    <div class="sider-label" style="font-size:9px;margin-top:8px">Region</div>
+    <div class="filter-group" id="region-filters">
+      <label class="filter-check"><input type="checkbox" value="North America" checked onchange="applyFilters()"><span class="dot" style="background:#FF6B35"></span>North America</label>
+      <label class="filter-check"><input type="checkbox" value="Europe" checked onchange="applyFilters()"><span class="dot" style="background:#7B5EA7"></span>Europe</label>
+      <label class="filter-check"><input type="checkbox" value="Asia" checked onchange="applyFilters()"><span class="dot" style="background:#00D4AA"></span>Asia</label>
+      <label class="filter-check"><input type="checkbox" value="Middle East" checked onchange="applyFilters()"><span class="dot" style="background:#FFD166"></span>Middle East</label>
+    </div>
+    <div class="sider-label" style="margin-top:14px;font-size:9px">Category</div>
+    <div class="filter-group" id="cat-filters">
+      <label class="filter-check"><input type="checkbox" value="Electronics" checked onchange="applyFilters()"><span class="dot" style="background:#FF6B35"></span>Electronics</label>
+      <label class="filter-check"><input type="checkbox" value="Accessories" checked onchange="applyFilters()"><span class="dot" style="background:#00D4AA"></span>Accessories</label>
+      <label class="filter-check"><input type="checkbox" value="Fashion" checked onchange="applyFilters()"><span class="dot" style="background:#7B5EA7"></span>Fashion</label>
+      <label class="filter-check"><input type="checkbox" value="Office" checked onchange="applyFilters()"><span class="dot" style="background:#118AB2"></span>Office</label>
+      <label class="filter-check"><input type="checkbox" value="Lifestyle" checked onchange="applyFilters()"><span class="dot" style="background:#FFD166"></span>Lifestyle</label>
+      <label class="filter-check"><input type="checkbox" value="Fitness" checked onchange="applyFilters()"><span class="dot" style="background:#EF476F"></span>Fitness</label>
+      <label class="filter-check"><input type="checkbox" value="Photography" checked onchange="applyFilters()"><span class="dot" style="background:#C77DFF"></span>Photography</label>
+    </div>
+    <button class="reset-btn" onclick="resetFilters()">↺ Reset All Filters</button>
+  </div>
+  <div class="sider-section">
+    <div class="sider-label">Live Stats</div>
+    <div class="stats-mini" id="live-stats">
+      <div class="stat-row"><span style="color:var(--muted)">Products</span><span class="stat-val" id="ls-prods">10</span></div>
+      <div class="stat-row"><span style="color:var(--muted)">Revenue</span><span class="stat-val" id="ls-rev">$1.594M</span></div>
+      <div class="stat-row"><span style="color:var(--muted)">Profit</span><span class="stat-val" id="ls-profit">$776K</span></div>
+      <div class="stat-row"><span style="color:var(--muted)">Avg Margin</span><span class="stat-val" id="ls-margin">53.1%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview')">Overview</button>
+    <button class="tab" onclick="showTab('products')">Products</button>
+    <button class="tab" onclick="showTab('regions')">Regions</button>
+    <button class="tab" onclick="showTab('categories')">Categories</button>
+    <button class="tab" onclick="showTab('strategy')">Strategy</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="page active" id="page-overview">
+    <div class="kpi-row" id="kpi-overview">
+      <div class="kpi" style="--kc:#FF6B35"><div class="kpi-label">Total Revenue</div><div class="kpi-val" id="k-rev">$1.594M</div><div class="kpi-sub">10 products · 4 regions</div><div class="kpi-badge">▲ Smart Watch leads 21%</div></div>
+      <div class="kpi" style="--kc:#00D4AA"><div class="kpi-label">Total Profit</div><div class="kpi-val" id="k-profit">$776K</div><div class="kpi-sub" id="k-profit-sub">48.7% net margin</div><div class="kpi-badge" style="background:rgba(0,212,170,.12);color:var(--a2)">▲ Strong unit economics</div></div>
+      <div class="kpi" style="--kc:#FFD166"><div class="kpi-label">Avg Margin</div><div class="kpi-val" id="k-margin">53.1%</div><div class="kpi-sub">Across filtered SKUs</div><div class="kpi-badge" style="background:rgba(255,209,102,.12);color:var(--a4)">▲ Phone Case 70%</div></div>
+      <div class="kpi" style="--kc:#7B5EA7"><div class="kpi-label">Units Sold</div><div class="kpi-val" id="k-units">47,200</div><div class="kpi-sub">Total volume</div><div class="kpi-badge" style="background:rgba(123,94,167,.12);color:var(--a3)">▲ Phone Case #1</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Revenue vs Profit by Region</div><div class="card-sub">USD</div></div><span class="card-chip">GROUPED BAR</span></div><div class="chart-wrap" style="height:200px"><canvas id="ch-reg-bar"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Revenue Share by Region</div><div class="card-sub">% of total</div></div><span class="card-chip">DONUT</span></div><div class="chart-wrap" style="height:200px"><canvas id="ch-reg-donut"></canvas></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Category Revenue</div><div class="card-sub">7 categories</div></div><span class="card-chip">BAR</span></div><div class="chart-wrap" style="height:210px"><canvas id="ch-cat-rev"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Margin % by Category</div><div class="card-sub">Ranked</div></div><span class="card-chip">H-BAR</span></div><div class="chart-wrap" style="height:210px"><canvas id="ch-cat-margin"></canvas></div></div>
+    </div>
+    <div class="insight-box">
+      <div class="insight-title">Key Insights</div>
+      <div class="insight-item"><span class="insight-dot">▸</span>Europe is the revenue engine at $692K (43.4%), driven by Smart Watch, BT Speaker and Backpack. Middle East has the highest margin efficiency at 66.7% — severely underpenetrated at just $105K.</div>
+      <div class="insight-item"><span class="insight-dot">▸</span>Electronics commands 48% of revenue but carries the lowest average margin (39.3%). The next growth frontier is Accessories (63.5%) and Lifestyle (66.7%) — both high-margin, proven categories.</div>
+      <div class="insight-item"><span class="insight-dot">▸</span>Phone Case and Water Bottle represent the "unicorn" SKUs: high volume, high margin, low price point. Scaling these two products alone could add $200–300K in incremental revenue within 2 quarters.</div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="page" id="page-products">
+    <div class="frow" id="prod-cat-filters">
+      <button class="fbtn active" onclick="filterProd('all',this)">All</button>
+      <button class="fbtn" onclick="filterProd('Electronics',this)">Electronics</button>
+      <button class="fbtn" onclick="filterProd('Accessories',this)">Accessories</button>
+      <button class="fbtn" onclick="filterProd('Fashion',this)">Fashion</button>
+      <button class="fbtn" onclick="filterProd('Office',this)">Office</button>
+      <button class="fbtn" onclick="filterProd('Lifestyle',this)">Lifestyle</button>
+      <button class="fbtn" onclick="filterProd('Fitness',this)">Fitness</button>
+      <button class="fbtn" onclick="filterProd('Photography',this)">Photography</button>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Product Leaderboard</div><div class="card-sub">Top 10 Amazon Best Sellers — sorted by revenue</div></div></div>
+      <table class="data-table"><thead><tr><th>#</th><th>Product</th><th>Category</th><th>Region</th><th class="num">Revenue</th><th class="num">Profit</th><th>Margin</th><th class="num">Units</th></tr></thead><tbody id="prod-tbody"></tbody></table>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Margin % — Ranked</div></div><span class="card-chip">H-BAR</span></div><div class="chart-wrap" style="height:260px"><canvas id="ch-margin-rank"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Units Sold</div></div><span class="card-chip">H-BAR</span></div><div class="chart-wrap" style="height:260px"><canvas id="ch-units"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- REGIONS -->
+  <div class="page" id="page-regions">
+    <div class="grid2" id="region-cards-row" style="grid-template-columns:repeat(4,1fr)"></div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><div><div class="card-title">Revenue vs Profit by Region</div></div><span class="card-chip">GROUPED</span></div><div class="chart-wrap" style="height:230px"><canvas id="ch-reg2"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Margin Efficiency by Region</div></div><span class="card-chip">H-BAR</span></div><div class="chart-wrap" style="height:230px"><canvas id="ch-reg-margin"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Category Composition by Region</div><div class="card-sub">Stacked by category revenue</div></div><span class="card-chip">STACKED</span></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="ch-reg-stacked"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="page" id="page-categories">
+    <div class="kpi-row">
+      <div class="kpi" style="--kc:#FF6B35"><div class="kpi-label">Electronics</div><div class="kpi-val">$766K</div><div class="kpi-sub">48% of total revenue</div></div>
+      <div class="kpi" style="--kc:#00D4AA"><div class="kpi-label">Accessories</div><div class="kpi-val">$230K</div><div class="kpi-sub">63.5% avg margin ✦</div></div>
+      <div class="kpi" style="--kc:#FFD166"><div class="kpi-label">Best Margin Cat.</div><div class="kpi-val">66.7%</div><div class="kpi-sub">Lifestyle category</div></div>
+      <div class="kpi" style="--kc:#7B5EA7"><div class="kpi-label">Categories</div><div class="kpi-val">7</div><div class="kpi-sub">53.1% blended margin</div></div>
+    </div>
+    <div class="grid21">
+      <div class="card"><div class="card-head"><div><div class="card-title">Revenue vs Profit by Category</div></div><span class="card-chip">GROUPED</span></div><div class="chart-wrap" style="height:240px"><canvas id="ch-cat-grouped"></canvas></div></div>
+      <div class="card"><div class="card-head"><div><div class="card-title">Revenue Share</div></div><span class="card-chip">PIE</span></div><div class="chart-wrap" style="height:240px"><canvas id="ch-cat-pie"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><div class="card-title">Revenue vs Margin Bubble Chart</div><div class="card-sub">Bubble size = units sold · Ideal SKUs are top-right</div></div><span class="card-chip">BUBBLE</span></div>
+      <div class="chart-wrap" style="height:280px"><canvas id="ch-bubble"></canvas></div>
+    </div>
+  </div>
+
+  <!-- STRATEGY -->
+  <div class="page" id="page-strategy">
+    <div class="kpi-row">
+      <div class="kpi" style="--kc:#FF6B35"><div class="kpi-label">Quick Win</div><div class="kpi-val" style="font-size:15px">Scale Phone Case</div><div class="kpi-sub">70% margin · 8K units · Asia</div></div>
+      <div class="kpi" style="--kc:#00D4AA"><div class="kpi-label">Whitespace</div><div class="kpi-val" style="font-size:15px">Middle East</div><div class="kpi-sub">66.7% margin · only $105K rev</div></div>
+      <div class="kpi" style="--kc:#FFD166"><div class="kpi-label">Double Down</div><div class="kpi-val" style="font-size:15px">Europe</div><div class="kpi-sub">$692K · 43.4% share · #1</div></div>
+      <div class="kpi" style="--kc:#7B5EA7"><div class="kpi-label">Bundle Play</div><div class="kpi-val" style="font-size:15px">WFH B2B</div><div class="kpi-sub">Laptop Stand + Gaming Mouse</div></div>
+    </div>
+    <div class="strat-grid" id="strat-cards"></div>
+    <div class="card" style="margin-top:2px">
+      <div class="card-head"><div><div class="card-title">Execution Priority Matrix</div><div class="card-sub">Impact vs Effort · 90-day roadmap</div></div></div>
+      <table class="priority-table" id="priority-tbl">
+        <thead><tr><th>Initiative</th><th>Impact</th><th>Effort</th><th>Timeline</th><th>Owner</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td>Scale Phone Case &amp; Water Bottle</td><td class="high-c">HIGH</td><td class="high-c">LOW</td><td>30 days</td><td>Growth</td><td class="p1">P1</td></tr>
+          <tr><td>Middle East market expansion</td><td class="high-c">HIGH</td><td class="mid-c">MED</td><td>60 days</td><td>Regional</td><td class="p1">P1</td></tr>
+          <tr><td>Europe bundle campaigns</td><td class="high-c">HIGH</td><td class="mid-c">MED</td><td>45 days</td><td>Marketing</td><td class="p1">P1</td></tr>
+          <tr><td>B2B WFH bundle launch</td><td class="mid-c">MED</td><td class="high-c">LOW</td><td>30 days</td><td>Sales</td><td class="p2">P2</td></tr>
+          <tr><td>Cross-region SKU expansion</td><td class="high-c">HIGH</td><td class="low-c">HIGH</td><td>90 days</td><td>Ops</td><td class="p2">P2</td></tr>
+          <tr><td>Reduce Electronics concentration</td><td class="mid-c">MED</td><td class="mid-c">MED</td><td>60 days</td><td>Category</td><td class="p3">P3</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- .main -->
+</div><!-- .layout -->
+
+<script>
+const RAW = [
+  {rank:1, name:'Smart Watch',      cat:'Electronics', region:'Europe',      rev:336000, profit:126000, margin:37.5, units:4200, price:80,  cost:50},
+  {rank:2, name:'Wireless Earbuds', cat:'Electronics', region:'N. America',  rev:250000, profit:100000, margin:40.0, units:5000, price:50,  cost:30},
+  {rank:3, name:'BT Speaker',       cat:'Electronics', region:'Europe',      rev:180000, profit:75000,  margin:41.7, units:3000, price:60,  cost:35},
+  {rank:4, name:'Backpack',         cat:'Fashion',     region:'Europe',      rev:176000, profit:80000,  margin:45.5, units:3200, price:55,  cost:30},
+  {rank:5, name:'Gaming Mouse',     cat:'Accessories', region:'Asia',        rev:150000, profit:90000,  margin:60.0, units:6000, price:25,  cost:10},
+  {rank:6, name:'Laptop Stand',     cat:'Office',      region:'Asia',        rev:135000, profit:81000,  margin:60.0, units:4500, price:30,  cost:12},
+  {rank:7, name:'Water Bottle',     cat:'Lifestyle',   region:'Middle East', rev:105000, profit:70000,  margin:66.7, units:7000, price:15,  cost:5},
+  {rank:8, name:'Phone Case',       cat:'Accessories', region:'Asia',        rev:80000,  profit:56000,  margin:70.0, units:8000, price:10,  cost:3},
+  {rank:9, name:'LED Ring Light',   cat:'Photography', region:'N. America',  rev:112000, profit:56000,  margin:50.0, units:2800, price:40,  cost:20},
+  {rank:10,name:'Yoga Mat',         cat:'Fitness',     region:'N. America',  rev:70000,  profit:42000,  margin:60.0, units:3500, price:20,  cost:8},
+];
+
+const CAT_C = {Electronics:'#FF6B35',Accessories:'#00D4AA',Fashion:'#7B5EA7',Office:'#118AB2',Lifestyle:'#FFD166',Fitness:'#EF476F',Photography:'#C77DFF'};
+const REG_C = {'North America':'#FF6B35','N. America':'#FF6B35',Europe:'#7B5EA7',Asia:'#00D4AA','Middle East':'#FFD166'};
+const CAT_PILL = {Electronics:'background:rgba(255,107,53,.15);color:#FF6B35',Accessories:'background:rgba(0,212,170,.15);color:#00D4AA',Fashion:'background:rgba(123,94,167,.15);color:#7B5EA7',Office:'background:rgba(17,138,178,.15);color:#118AB2',Lifestyle:'background:rgba(255,209,102,.15);color:#FFD166',Fitness:'background:rgba(239,71,111,.15);color:#EF476F',Photography:'background:rgba(199,125,255,.15);color:#C77DFF'};
+
+let activeRegions = new Set(['North America','Europe','Asia','Middle East']);
+let activeCats = new Set(['Electronics','Accessories','Fashion','Office','Lifestyle','Fitness','Photography']);
+let prodFilter = 'all';
+const charts = {};
+
+function filtered() {
+  return RAW.filter(d => {
+    const r = d.region === 'N. America' ? 'North America' : d.region;
+    return activeRegions.has(r) && activeCats.has(d.cat);
+  });
+}
+
+function applyFilters() {
+  activeRegions = new Set([...document.querySelectorAll('#region-filters input:checked')].map(i=>i.value));
+  activeCats    = new Set([...document.querySelectorAll('#cat-filters input:checked')].map(i=>i.value));
+  updateAll();
+}
+
+function resetFilters() {
+  document.querySelectorAll('#region-filters input, #cat-filters input').forEach(i=>i.checked=true);
+  applyFilters();
+}
+
+function fmt(n) { return n>=1e6 ? '$'+(n/1e6).toFixed(3)+'M' : '$'+Math.round(n/1e3)+'K'; }
+
+function updateLiveStats() {
+  const f = filtered();
+  const rev = f.reduce((s,d)=>s+d.rev,0);
+  const profit = f.reduce((s,d)=>s+d.profit,0);
+  const margin = f.length ? f.reduce((s,d)=>s+d.margin,0)/f.length : 0;
+  document.getElementById('ls-prods').textContent = f.length;
+  document.getElementById('ls-rev').textContent = fmt(rev);
+  document.getElementById('ls-profit').textContent = fmt(profit);
+  document.getElementById('ls-margin').textContent = margin.toFixed(1)+'%';
+  document.getElementById('k-rev').textContent = fmt(rev);
+  document.getElementById('k-profit').textContent = fmt(profit);
+  document.getElementById('k-profit-sub').textContent = (profit/rev*100).toFixed(1)+'% net margin';
+  document.getElementById('k-margin').textContent = margin.toFixed(1)+'%';
+  document.getElementById('k-units').textContent = f.reduce((s,d)=>s+d.units,0).toLocaleString();
+}
+
+Chart.defaults.color = '#7B7A8A';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = 'Inter,sans-serif';
+Chart.defaults.font.size = 10;
+const GRID = {color:'rgba(255,255,255,0.04)',drawBorder:false};
+const TICK = {color:'#5a5966'};
+
+function mkChart(id, cfg) {
+  if (charts[id]) { charts[id].destroy(); }
+  charts[id] = new Chart(document.getElementById(id), cfg);
+}
+
+function byRegion(data) {
+  const m={};
+  data.forEach(d=>{const r=d.region==='N. America'?'North America':d.region;if(!m[r])m[r]={rev:0,profit:0,units:0};m[r].rev+=d.rev;m[r].profit+=d.profit;m[r].units+=d.units;});
+  return m;
+}
+function byCat(data) {
+  const m={};
+  data.forEach(d=>{if(!m[d.cat])m[d.cat]={rev:0,profit:0,units:0};m[d.cat].rev+=d.rev;m[d.cat].profit+=d.profit;m[d.cat].units+=d.units;});
+  return m;
+}
+
+function updateOverviewCharts() {
+  const f = filtered();
+  const rg = byRegion(f);
+  const regs = Object.keys(rg).sort((a,b)=>rg[b].rev-rg[a].rev);
+  mkChart('ch-reg-bar',{type:'bar',data:{labels:regs,datasets:[
+    {label:'Revenue',data:regs.map(r=>rg[r].rev),backgroundColor:regs.map(r=>(REG_C[r]||'#888')+'cc'),borderRadius:5,borderSkipped:false},
+    {label:'Profit',data:regs.map(r=>rg[r].profit),backgroundColor:regs.map(r=>(REG_C[r]||'#888')+'44'),borderRadius:5,borderSkipped:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,usePointStyle:true,padding:10}}},scales:{x:{grid:GRID,ticks:TICK},y:{grid:GRID,ticks:{...TICK,callback:v=>'$'+(v/1000)+'K'}}}}});
+
+  mkChart('ch-reg-donut',{type:'doughnut',data:{labels:regs,datasets:[{data:regs.map(r=>rg[r].rev),backgroundColor:regs.map(r=>(REG_C[r]||'#888')+'cc'),borderColor:'transparent',borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{boxWidth:8,usePointStyle:true,padding:10,font:{size:10}}},tooltip:{callbacks:{label:c=>' '+c.label+': $'+(c.raw/1000)+'K'}}}}});
+
+  const cg = byCat(f);
+  const cats = Object.keys(cg).sort((a,b)=>cg[b].rev-cg[a].rev);
+  mkChart('ch-cat-rev',{type:'bar',data:{labels:cats,datasets:[
+    {label:'Revenue',data:cats.map(c=>cg[c].rev),backgroundColor:cats.map(c=>(CAT_C[c]||'#888')+'cc'),borderRadius:5,borderSkipped:false},
+    {label:'Profit', data:cats.map(c=>cg[c].profit),backgroundColor:cats.map(c=>(CAT_C[c]||'#888')+'44'),borderRadius:5,borderSkipped:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:GRID,ticks:{...TICK,maxRotation:30}},y:{grid:GRID,ticks:{...TICK,callback:v=>'$'+(v/1000)+'K'}}}}});
+
+  const catMargins = cats.map(c=>{
+    const items=f.filter(d=>d.cat===c);
+    return items.length ? items.reduce((s,d)=>s+d.profit,0)/items.reduce((s,d)=>s+d.rev,0)*100 : 0;
+  });
+  const sortedCM = cats.map((c,i)=>({c,m:catMargins[i]})).sort((a,b)=>b.m-a.m);
+  mkChart('ch-cat-margin',{type:'bar',data:{labels:sortedCM.map(x=>x.c),datasets:[{data:sortedCM.map(x=>x.m),backgroundColor:sortedCM.map(x=>(CAT_C[x.c]||'#888')+'cc'),borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:GRID,ticks:{...TICK,callback:v=>v.toFixed(0)+'%'},max:80},y:{grid:GRID,ticks:TICK}}}});
+}
+
+function updateProductCharts() {
+  const f = filtered().filter(d=>prodFilter==='all'||d.cat===prodFilter);
+  const ms = [...f].sort((a,b)=>b.margin-a.margin);
+  mkChart('ch-margin-rank',{type:'bar',data:{labels:ms.map(d=>d.name),datasets:[{data:ms.map(d=>d.margin),backgroundColor:ms.map(d=>d.margin>=60?'#00D4AAcc':d.margin>=45?'#FFD166cc':'#FF6B35cc'),borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:GRID,ticks:{...TICK,callback:v=>v+'%'},max:80},y:{grid:GRID,ticks:{...TICK,font:{size:9}}}}}});
+  const us = [...f].sort((a,b)=>b.units-a.units);
+  mkChart('ch-units',{type:'bar',data:{labels:us.map(d=>d.name),datasets:[{data:us.map(d=>d.units),backgroundColor:us.map(d=>(CAT_C[d.cat]||'#888')+'cc'),borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:GRID,ticks:TICK},y:{grid:GRID,ticks:{...TICK,font:{size:9}}}}}});
+}
+
+function renderProdTable() {
+  const f = filtered().filter(d=>prodFilter==='all'||d.cat===prodFilter).sort((a,b)=>b.rev-a.rev);
+  document.getElementById('prod-tbody').innerHTML = f.map((d,i)=>`
+    <tr>
+      <td><span class="rank ${i<3?'r'+(i+1):''}">${i+1}</span></td>
+      <td style="font-weight:500">${d.name}</td>
+      <td><span class="pill" style="${CAT_PILL[d.cat]||''}">${d.cat}</span></td>
+      <td style="color:var(--muted)">${d.region}</td>
+      <td class="num">${fmt(d.rev)}</td>
+      <td class="num" style="color:#00D4AA">${fmt(d.profit)}</td>
+      <td><div class="mbar"><div class="mtrack"><div class="mfill" style="width:${d.margin}%;background:${d.margin>=60?'#00D4AA':d.margin>=45?'#FFD166':'#FF6B35'}"></div></div><span style="font-size:11px;font-family:var(--mono)">${d.margin}%</span></div></td>
+      <td class="num">${d.units.toLocaleString()}</td>
+    </tr>`).join('');
+}
+
+function filterProd(f, btn) {
+  prodFilter = f;
+  document.querySelectorAll('#prod-cat-filters .fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProdTable(); updateProductCharts();
+}
+
+function updateRegionCharts() {
+  const f = filtered();
+  const rg = byRegion(f);
+  const regs = Object.keys(rg).sort((a,b)=>rg[b].rev-rg[a].rev);
+
+  // region cards
+  const total = Object.values(rg).reduce((s,v)=>s+v.rev,0)||1;
+  document.getElementById('region-cards-row').innerHTML = regs.map(r=>`
+    <div class="card" style="text-align:left">
+      <div style="font-size:11px;font-weight:600;margin-bottom:6px">${r}</div>
+      <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${REG_C[r]||'#888'}">${fmt(rg[r].rev)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">Profit: ${fmt(rg[r].profit)} · Margin: ${Math.round(rg[r].profit/rg[r].rev*100)}%</div>
+      <div style="height:3px;border-radius:2px;background:${REG_C[r]||'#888'};width:${Math.round(rg[r].rev/total*100)}%;margin-top:8px"></div>
+      <div style="font-size:9px;color:var(--hint);margin-top:3px">${Math.round(rg[r].rev/total*100)}% of total</div>
+    </div>`).join('');
+
+  mkChart('ch-reg2',{type:'bar',data:{labels:regs,datasets:[
+    {label:'Revenue',data:regs.map(r=>rg[r].rev),backgroundColor:regs.map(r=>(REG_C[r]||'#888')+'cc'),borderRadius:5,borderSkipped:false},
+    {label:'Profit',data:regs.map(r=>rg[r].profit),backgroundColor:regs.map(r=>(REG_C[r]||'#888')+'44'),borderRadius:5,borderSkipped:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,usePointStyle:true}}},scales:{x:{grid:GRID,ticks:TICK},y:{grid:GRID,ticks:{...TICK,callback:v=>'$'+(v/1000)+'K'}}}}});
+
+  const margins = regs.map(r=>Math.round(rg[r].profit/rg[r].rev*100));
+  mkChart('ch-reg-margin',{type:'bar',data:{labels:regs,datasets:[{data:margins,backgroundColor:regs.map((_,i)=>margins[i]>=60?'#00D4AAcc':margins[i]>=50?'#FFD166cc':'#FF6B35cc'),borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:GRID,ticks:{...TICK,callback:v=>v+'%'},max:80},y:{grid:GRID,ticks:TICK}}}});
+
+  // stacked by category
+  const cats = [...activeCats];
+  const datasets = cats.map(cat=>({
+    label:cat,
+    data:regs.map(r=>{
+      const items=f.filter(d=>(d.region==='N. America'?'North America':d.region)===r && d.cat===cat);
+      return items.reduce((s,d)=>s+d.rev,0)/1000;
+    }),
+    backgroundColor:(CAT_C[cat]||'#888')+'cc',borderRadius:3,borderSkipped:false,
+  }));
+  mkChart('ch-reg-stacked',{type:'bar',data:{labels:regs,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,usePointStyle:true,font:{size:9}}}},scales:{x:{stacked:true,grid:GRID,ticks:TICK},y:{stacked:true,grid:GRID,ticks:{...TICK,callback:v=>'$'+v+'K'}}}}});
+}
+
+function updateCatCharts() {
+  const f = filtered();
+  const cg = byCat(f);
+  const cats = Object.keys(cg).sort((a,b)=>cg[b].rev-cg[a].rev);
+  mkChart('ch-cat-grouped',{type:'bar',data:{labels:cats,datasets:[
+    {label:'Revenue',data:cats.map(c=>cg[c].rev),backgroundColor:cats.map(c=>(CAT_C[c]||'#888')+'cc'),borderRadius:5,borderSkipped:false},
+    {label:'Profit',data:cats.map(c=>cg[c].profit),backgroundColor:cats.map(c=>(CAT_C[c]||'#888')+'44'),borderRadius:5,borderSkipped:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:8,usePointStyle:true}}},scales:{x:{grid:GRID,ticks:{...TICK,maxRotation:30}},y:{grid:GRID,ticks:{...TICK,callback:v=>'$'+(v/1000)+'K'}}}}});
+
+  mkChart('ch-cat-pie',{type:'doughnut',data:{labels:cats,datasets:[{data:cats.map(c=>cg[c].rev),backgroundColor:cats.map(c=>(CAT_C[c]||'#888')+'cc'),borderColor:'transparent',borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:8,usePointStyle:true,font:{size:9}}}}}});
+
+  mkChart('ch-bubble',{type:'bubble',data:{datasets:f.map(d=>({
+    label:d.name,
+    data:[{x:d.rev/1000,y:d.margin,r:Math.max(5,Math.round(d.units/700))}],
+    backgroundColor:(CAT_C[d.cat]||'#888')+'88',borderColor:CAT_C[d.cat]||'#888',borderWidth:1.5,
+  }))},options:{responsive:true,maintainAspectRatio:false,layout:{padding:20},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: $${ctx.parsed.x}K · ${ctx.parsed.y}% margin`}}},scales:{x:{grid:GRID,ticks:{...TICK,callback:v=>'$'+v+'K'},title:{display:true,text:'Revenue (USD thousands)',color:'#5a5966',font:{size:10}},min:40,max:380},y:{grid:GRID,ticks:{...TICK,callback:v=>v+'%'},title:{display:true,text:'Profit Margin %',color:'#5a5966',font:{size:10}},min:30,max:75}}}});
+}
+
+function renderStratCards() {
+  const strats = [
+    {n:'01',t:'Scale High-Margin SKUs Aggressively',b:'Phone Case (70%), Water Bottle (67%), Laptop Stand (60%): proven unit economics. Boost inventory, expand to 2–3 new geographies. Target: 3x revenue in 6 months.',c:'#FF6B35'},
+    {n:'02',t:'Unlock Middle East — Highest-ROI Region',b:'Middle East achieves 66.7% margin but only $105K revenue. Introduce Phone Case, Yoga Mat, Gaming Mouse. Projected uplift: +$80–120K revenue.',c:'#00D4AA'},
+    {n:'03',t:'Defend and Deepen Europe',b:'Europe at 43.4% is the anchor. Untapped Smart Watch + BT Speaker bundles. Expand Laptop Stand and Gaming Mouse from the Asia playbook into UK, Germany, France.',c:'#7B5EA7'},
+    {n:'04',t:'B2B WFH Bundle via Amazon Business',b:'Laptop Stand + Gaming Mouse = $55 bundle. B2B buyers drive 30%+ higher AOV with lower returns. Target IT procurement Asia + Europe. 500 units/month = $27.5K uplift.',c:'#FFD166'},
+    {n:'05',t:'Rebalance Electronics Concentration',b:'Electronics = 48% revenue but only 39% margin. Redirect 20% of electronics ad spend to Accessories (63.5%) and Lifestyle (66.7%).',c:'#EF476F'},
+    {n:'06',t:'Systematic Cross-Region SKU Expansion',b:'Phone Case is Asia-only; Water Bottle is Middle East-only. Geographic silos are artificial. 2–3 SKU cross-region tests per quarter could unlock $200–350K annual revenue.',c:'#118AB2'},
+  ];
+  document.getElementById('strat-cards').innerHTML = strats.map(s=>`
+    <div class="strat-card" style="--sc:${s.c}">
+      <div class="strat-num">${s.n}</div>
+      <div class="strat-title">${s.t}</div>
+      <div class="strat-body">${s.b}</div>
+    </div>`).join('');
+}
+
+function updateAll() {
+  updateLiveStats();
+  updateOverviewCharts();
+  updateProductCharts();
+  renderProdTable();
+  updateRegionCharts();
+  updateCatCharts();
+  renderStratCards();
+}
+
+function showTab(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+updateAll();
+</script>
+</body>
+</html>
