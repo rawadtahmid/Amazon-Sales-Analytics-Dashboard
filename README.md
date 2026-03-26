@@ -1,13 +1,12 @@
-📊 Amazon Sales Analytics Dashboard
+# 📊 Amazon Sales Analytics Dashboard
 
 An interactive dashboard with business insights and strategy.
 
-🚀 Features
-
-➢Interactive filters (Region, Product, Category)
-➢KPI tracking (Revenue, Profit, Margin, Units)
-➢Data visualization (Bar, Donut, Bubble charts)
-➢Clean UI/UX
+## 🚀 Features
+- Interactive filters (Region, Product, Category)
+- KPI tracking (Revenue, Profit, Margin, Units)
+- Data visualization (Bar, Donut, Bubble charts)
+- Clean and user-friendly UI
 
 ## 🧠 Key Insights
 - Europe dominates revenue (43%)
