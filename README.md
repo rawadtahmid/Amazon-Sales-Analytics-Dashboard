@@ -1,4 +1,5 @@
 📊 Amazon Sales Analytics Dashboard
+
 An interactive dashboard with business insights and strategy.
 
 🚀 Features
