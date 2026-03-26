@@ -3,15 +3,23 @@ Hi, I'm Tahmid 👋
 
 I build interactive dashboards that combine:
 
-Data visualization
-Business insights
-Strategic recommendations
+*Data visualization
 
-🔧 Skills
+*Business insights
 
-HTML, CSS, JavaScript
-Data Analysis
-Dashboard Design
+*Strategic recommendations
+
+🔧 Skills:
+
+*HTML 
+
+*CSS
+
+*JavaScript
+
+*Data Analysis
+
+*Dashboard Design
 
 📊 Featured Work
 
