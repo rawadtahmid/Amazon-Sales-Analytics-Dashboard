@@ -9,11 +9,11 @@ An interactive dashboard with business insights and strategy.
 ➢Data visualization (Bar, Donut, Bubble charts)
 ➢Clean UI/UX
 
-🧠 Insights
-➢Europe dominates revenue (43%)
-➢Phone Case highest margin (70%)
-➢Electronics = high revenue but low margin
-➢Middle East = high potential market
+## 🧠 Key Insights
+- Europe dominates revenue (43%)
+- Phone Case has highest margin (70%)
+- Electronics: high revenue but low margin
+- Middle East: high potential market
 
 📄 Report Included
 
@@ -24,6 +24,16 @@ Full business report with strategy and recommendations.
 ➢HTML
 ➢CSS
 ➢JavaScript
+
+## ▶️ How to Use
+1. Download or clone the repository
+2. Open `Amazon-Sales-Analytics-Dashboard.html` in your browser
+
+## 📂 Project Structure
+- Amazon-Sales-Analytics-Dashboard.html
+- amazon_report.pdf
+- README.md
+
 
 📬 Contact
 
