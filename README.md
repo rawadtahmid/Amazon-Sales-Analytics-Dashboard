@@ -1,2 +1,36 @@
-# Amazon-Sales-Analytics-Dashboard
-Interactive eCommerce sales dashboard with KPIs, insights, and business strategy (HTML, JS)
+Hi, I'm Tahmid 👋
+🚀 Data Analyst & Dashboard Developer
+
+I build interactive dashboards that combine:
+Data visualization
+Business insights
+Strategic recommendations
+
+🔧 Skills
+HTML, CSS, JavaScript
+Data Analysis
+Dashboard Design
+
+📊 Featured Work
+Amazon Sales Analytics Dashboard (with insights & strategy)
+
+📬 Contact
+rawadtahmid@gmail.com
+Hi, I'm Tahmid 👋
+🚀 Data Analyst & Dashboard Developer
+
+I build interactive dashboards that combine:
+Data visualization
+Business insights
+Strategic recommendations
+
+🔧 Skills
+HTML, CSS, JavaScript
+Data Analysis
+Dashboard Design
+
+📊 Featured Work
+Amazon Sales Analytics Dashboard (with insights & strategy)
+
+📬 Contact
+rawadtahmid@gmail.com
