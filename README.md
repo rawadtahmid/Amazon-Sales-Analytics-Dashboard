@@ -18,6 +18,9 @@ An interactive dashboard with business insights and strategy.
 
 Full business report with strategy and recommendations.
 
+📸 Dashboard Preview
+![Dashboard](screenshot.png)
+
 ## 🛠️ Tools & Technologies
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Data Visualization:** Interactive Charts (Bar, Donut, Bubble)
