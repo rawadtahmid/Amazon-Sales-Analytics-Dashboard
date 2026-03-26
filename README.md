@@ -18,7 +18,7 @@ An interactive dashboard with business insights and strategy.
 
 Full business report with strategy and recommendations.
 
-##📸 Dashboard Preview
+## 📸 Dashboard Preview
 ![Dashboard](screenshot.png)
 
 ## 🛠️ Tools & Technologies
